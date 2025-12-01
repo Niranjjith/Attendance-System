@@ -18,7 +18,9 @@ import {
   createSubject,
   updateSubject,
   deleteSubject,
-  assignSubjectToTeacher
+  assignSubjectToTeacher,
+  // User management
+  changeUserPassword
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -47,6 +49,9 @@ router.get("/teachers", getTeachers);
 router.post("/teachers", createTeacher);
 router.put("/teachers/:id", updateTeacher);
 router.delete("/teachers/:id", deleteTeacher);
+
+// Change password for any user
+router.post("/users/:id/change-password", changeUserPassword);
 
 // Subject routes
 router.get("/subjects", getSubjects);

@@ -7,6 +7,8 @@ class Attendance {
   final DateTime date;
   final String status; // present, absent, late
   final String markedBy;
+  final String? hour; // Hour when attendance was marked
+  final DateTime? markedAt; // Timestamp when attendance was marked
   final Subject? subject;
   final User? markedByUser;
 
@@ -17,6 +19,8 @@ class Attendance {
     required this.date,
     required this.status,
     required this.markedBy,
+    this.hour,
+    this.markedAt,
     this.subject,
     this.markedByUser,
   });
@@ -35,6 +39,8 @@ class Attendance {
       markedBy: json['markedBy'] is String
           ? json['markedBy']
           : json['markedBy']?['_id'] ?? '',
+      hour: json['hour'],
+      markedAt: json['markedAt'] != null ? DateTime.parse(json['markedAt']) : null,
       subject: json['subjectId'] is Map
           ? Subject.fromJson(json['subjectId'])
           : null,

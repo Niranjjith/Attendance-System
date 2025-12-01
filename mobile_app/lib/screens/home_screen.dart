@@ -3,10 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import '../providers/attendance_provider.dart';
-import 'attendance_detail_screen.dart';
+import '../theme/app_theme.dart';
 import 'profile_screen.dart';
 import 'notice_board_screen.dart';
 import 'timetable_screen.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -29,12 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundGreen,
       appBar: AppBar(
-        title: const Text(
-          'MultiHub',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('MultiHub'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
@@ -56,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      drawer: _buildDrawer(),
+      drawer: _buildDrawer(context),
       body: IndexedStack(
         index: _selectedIndex,
         children: [
@@ -67,8 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
@@ -83,13 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDrawer() {
+  Widget _buildDrawer(BuildContext context) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.black),
+            decoration: const BoxDecoration(color: AppTheme.primaryGreen),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -98,16 +94,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppTheme.white,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.school, color: Colors.black, size: 30),
+                  child: Image.asset(
+                    'assets/nilgiri.png',
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/multimedia.png',
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.school, color: AppTheme.primaryGreen, size: 30);
+                        },
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const Text(
                   'MultiHub',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppTheme.white,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -116,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.dashboard, color: Colors.black),
+            leading: const Icon(Icons.dashboard, color: AppTheme.primaryGreen),
             title: const Text('Dashboard'),
             onTap: () {
               Navigator.pop(context);
@@ -124,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.calendar_today, color: Colors.black),
+            leading: const Icon(Icons.calendar_today, color: AppTheme.primaryGreen),
             title: const Text('Timetable'),
             onTap: () {
               Navigator.pop(context);
@@ -135,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.notifications, color: Colors.black),
+            leading: const Icon(Icons.notifications, color: AppTheme.primaryGreen),
             title: const Text('Notice Board'),
             onTap: () {
               Navigator.pop(context);
@@ -146,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.person, color: Colors.black),
+            leading: const Icon(Icons.person, color: AppTheme.primaryGreen),
             title: const Text('Profile'),
             onTap: () {
               Navigator.pop(context);
@@ -158,8 +164,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout', style: TextStyle(color: Colors.red)),
+            leading: const Icon(Icons.logout, color: AppTheme.errorRed),
+            title: const Text('Logout', style: TextStyle(color: AppTheme.errorRed)),
             onTap: () async {
               final authProvider = Provider.of<AuthProvider>(context, listen: false);
               await authProvider.logout();
@@ -191,8 +197,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Today's Attendance - 5 Round Icons
-              _buildTodaysAttendance(provider, today),
+              // Welcome Card
+              _buildWelcomeCard(),
+              const SizedBox(height: 24),
+              // Today's Attendance by Hour - 5 Round Icons
+              _buildTodaysAttendanceByHour(provider, today),
               const SizedBox(height: 24),
               // Overall Statistics
               _buildOverallStats(stats),
@@ -206,79 +215,143 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTodaysAttendance(AttendanceProvider provider, String today) {
+  Widget _buildWelcomeCard() {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        final user = authProvider.user;
+        return Card(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppTheme.primaryGreen, AppTheme.lightGreen],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Welcome Back!',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  user?.name ?? 'Student',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    color: AppTheme.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Track your attendance and stay updated',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTodaysAttendanceByHour(AttendanceProvider provider, String today) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Today's Attendance",
+          "Today's Attendance by Hour",
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 16),
         FutureBuilder(
           future: provider.loadAttendance(startDate: today, endDate: today),
           builder: (context, snapshot) {
-            // Get today's subjects (mock data - replace with actual API call)
-            final todaySubjects = [
-              {'id': '1', 'name': 'Math', 'code': 'MATH101', 'status': 'present'},
-              {'id': '2', 'name': 'Science', 'code': 'SCI101', 'status': 'absent'},
-              {'id': '3', 'name': 'English', 'code': 'ENG101', 'status': 'late'},
-              {'id': '4', 'name': 'History', 'code': 'HIS101', 'status': 'present'},
-              {'id': '5', 'name': 'Physics', 'code': 'PHY101', 'status': null},
-            ];
-
+            // Hours 1-5 for today
+            final hours = [1, 2, 3, 4, 5];
+            
             return SizedBox(
-              height: 100,
+              height: 120,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: todaySubjects.length,
+                itemCount: hours.length,
                 itemBuilder: (context, index) {
-                  final subject = todaySubjects[index];
-                  final status = subject['status'] as String?;
-                  Color statusColor = Colors.grey;
+                  final hour = hours[index];
+                  // Mock data - replace with actual API call
+                  final status = _getHourStatus(hour); // 'present', 'absent', 'late', or null
+                  
+                  Color statusColor = Colors.grey.shade300;
                   IconData statusIcon = Icons.help_outline;
+                  String statusText = 'Not Marked';
 
                   if (status == 'present') {
-                    statusColor = Colors.green;
+                    statusColor = AppTheme.successGreen;
                     statusIcon = Icons.check_circle;
+                    statusText = 'Present';
                   } else if (status == 'absent') {
-                    statusColor = Colors.red;
+                    statusColor = AppTheme.errorRed;
                     statusIcon = Icons.cancel;
+                    statusText = 'Absent';
                   } else if (status == 'late') {
-                    statusColor = Colors.orange;
+                    statusColor = AppTheme.warningOrange;
                     statusIcon = Icons.schedule;
+                    statusText = 'Late';
                   }
 
                   return Container(
-                    width: 90,
+                    width: 100,
                     margin: const EdgeInsets.only(right: 12),
                     child: Column(
                       children: [
                         Container(
-                          width: 70,
-                          height: 70,
+                          width: 80,
+                          height: 80,
                           decoration: BoxDecoration(
                             color: statusColor.withOpacity(0.1),
                             shape: BoxShape.circle,
-                            border: Border.all(color: statusColor, width: 2),
+                            border: Border.all(color: statusColor, width: 3),
                           ),
-                          child: Icon(
-                            statusIcon,
-                            color: statusColor,
-                            size: 30,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'H$hour',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: statusColor,
+                                ),
+                              ),
+                              Icon(
+                                statusIcon,
+                                color: statusColor,
+                                size: 24,
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          subject['name'] as String,
-                          style: const TextStyle(
+                          statusText,
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: Colors.black,
+                            color: statusColor,
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -296,77 +369,105 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String? _getHourStatus(int hour) {
+    // Mock function - replace with actual API call
+    // This should check attendance for the current hour
+    final now = DateTime.now();
+    final currentHour = now.hour;
+    
+    // Mock logic - in real app, fetch from API
+    if (hour == 1) return 'present';
+    if (hour == 2) return 'late';
+    if (hour == 3) return 'absent';
+    return null; // Not marked yet
+  }
+
   Widget _buildOverallStats(Map<String, dynamic>? stats) {
     if (stats == null) {
-      return const Card(
+      return Card(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text('No statistics available'),
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              const Icon(Icons.bar_chart, size: 48, color: AppTheme.textLight),
+              const SizedBox(height: 16),
+              const Text(
+                'No statistics available',
+                style: TextStyle(color: AppTheme.textLight),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     final overall = stats['overall'] as Map<String, dynamic>?;
-    final bySubject = stats['bySubject'] as List?;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Overall Statistics',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                if (overall != null) ...[
-                  _buildStatRow('Total Classes', overall['total']?.toString() ?? '0'),
-                  const Divider(),
-                  _buildStatRow('Present', overall['present']?.toString() ?? '0', Colors.green),
-                  _buildStatRow('Late', overall['late']?.toString() ?? '0', Colors.orange),
-                  _buildStatRow('Absent', overall['absent']?.toString() ?? '0', Colors.red),
-                  const Divider(),
-                  _buildStatRow(
-                    'Attendance %',
-                    '${overall['percentage'] ?? '0'}%',
-                    Colors.black,
-                    isBold: true,
-                  ),
-                ],
-              ],
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Overall Statistics',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textDark,
+              ),
             ),
-          ),
+            const SizedBox(height: 20),
+            if (overall != null) ...[
+              _buildStatRow('Total Classes', overall['total']?.toString() ?? '0', Icons.class_),
+              const Divider(height: 24),
+              _buildStatRow('Present', overall['present']?.toString() ?? '0', Icons.check_circle, AppTheme.successGreen),
+              _buildStatRow('Late', overall['late']?.toString() ?? '0', Icons.schedule, AppTheme.warningOrange),
+              _buildStatRow('Absent', overall['absent']?.toString() ?? '0', Icons.cancel, AppTheme.errorRed),
+              const Divider(height: 24),
+              _buildStatRow(
+                'Attendance %',
+                '${overall['percentage'] ?? '0'}%',
+                Icons.trending_up,
+                AppTheme.primaryGreen,
+                true,
+              ),
+            ],
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildStatRow(String label, String value, [Color? color, bool isBold = false]) {
+  Widget _buildStatRow(String label, String value, IconData icon, [Color? color, bool? isBold]) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[700],
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (color ?? AppTheme.primaryGreen).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color ?? AppTheme.primaryGreen, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                color: AppTheme.textLight,
+              ),
             ),
           ),
           Text(
             value,
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: color ?? Colors.black,
+              fontSize: 18,
+              fontWeight: (isBold == true) ? FontWeight.bold : FontWeight.w600,
+              color: color ?? AppTheme.textDark,
             ),
           ),
         ],
@@ -381,9 +482,9 @@ class _HomeScreenState extends State<HomeScreen> {
         const Text(
           'Quick Actions',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 16),
@@ -393,6 +494,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildActionCard(
                 icon: Icons.calendar_today,
                 title: 'Timetable',
+                color: AppTheme.primaryGreen,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -406,6 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildActionCard(
                 icon: Icons.notifications,
                 title: 'Notices',
+                color: AppTheme.lightGreen,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -423,24 +526,40 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildActionCard({
     required IconData icon,
     required String title,
+    required Color color,
     required VoidCallback onTap,
   }) {
     return Card(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
           padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
           child: Column(
             children: [
-              Icon(icon, size: 40, color: Colors.black),
-              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 32, color: color),
+              ),
+              const SizedBox(height: 12),
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textDark,
                 ),
               ),
             ],
@@ -463,18 +582,17 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.inbox, size: 64, color: Colors.grey),
+                Icon(Icons.inbox, size: 64, color: Colors.grey.shade400),
                 const SizedBox(height: 16),
-                const Text('No attendance records'),
+                Text(
+                  'No attendance records',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
                     provider.loadAttendance();
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                  ),
                   child: const Text('Load Attendance'),
                 ),
               ],
@@ -485,16 +603,45 @@ class _HomeScreenState extends State<HomeScreen> {
         return RefreshIndicator(
           onRefresh: () => provider.loadAttendance(),
           child: ListView.builder(
+            padding: const EdgeInsets.all(16),
             itemCount: attendance.length,
             itemBuilder: (context, index) {
               final record = attendance[index];
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   leading: _getStatusIcon(record.status),
-                  title: Text(record.subject?.name ?? 'Unknown Subject'),
-                  subtitle: Text(
-                    DateFormat('MMM dd, yyyy').format(record.date),
+                  title: Text(
+                    record.subject?.name ?? 'Unknown Subject',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat('MMM dd, yyyy').format(record.date),
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                      if (record.hour != null)
+                        Text(
+                          'Hour: ${record.hour}',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        ),
+                      if (record.markedByUser != null)
+                        Text(
+                          'Teacher: ${record.markedByUser!.name}',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        ),
+                      if (record.markedAt != null)
+                        Text(
+                          'Marked at: ${DateFormat('MMM dd, yyyy HH:mm').format(record.markedAt!)}',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        ),
+                    ],
                   ),
                   trailing: _getStatusChip(record.status),
                 ),
@@ -512,37 +659,52 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (status) {
       case 'present':
         icon = Icons.check_circle;
-        color = Colors.green;
+        color = AppTheme.successGreen;
         break;
       case 'late':
         icon = Icons.schedule;
-        color = Colors.orange;
+        color = AppTheme.warningOrange;
         break;
       default:
         icon = Icons.cancel;
-        color = Colors.red;
+        color = AppTheme.errorRed;
     }
-    return Icon(icon, color: color);
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, color: color, size: 24),
+    );
   }
 
   Widget _getStatusChip(String status) {
     Color color;
     switch (status) {
       case 'present':
-        color = Colors.green;
+        color = AppTheme.successGreen;
         break;
       case 'late':
-        color = Colors.orange;
+        color = AppTheme.warningOrange;
         break;
       default:
-        color = Colors.red;
+        color = AppTheme.errorRed;
     }
-    return Chip(
-      label: Text(
-        status.toUpperCase(),
-        style: const TextStyle(fontSize: 12, color: Colors.white),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
       ),
-      backgroundColor: color,
+      child: Text(
+        status.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: AppTheme.white,
+        ),
+      ),
     );
   }
 }

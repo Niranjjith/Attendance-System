@@ -131,7 +131,7 @@ export const createStudent = async (req, res) => {
 // Update student
 export const updateStudent = async (req, res) => {
   try {
-    const { name, email, batch, department, semester, registerNumber, phone, subjects } = req.body;
+    const { name, email, batch, department, semester, registerNumber, phone, subjects, password } = req.body;
     const student = await User.findOne({ _id: req.params.id, role: "student" });
 
     if (!student) {
@@ -295,7 +295,7 @@ export const createTeacher = async (req, res) => {
 // Update teacher
 export const updateTeacher = async (req, res) => {
   try {
-    const { name, email, assignedSubjects } = req.body;
+    const { name, email, assignedSubjects, password } = req.body;
     const teacher = await User.findOne({ _id: req.params.id, role: "teacher" });
 
     if (!teacher) {
@@ -331,6 +331,32 @@ export const deleteTeacher = async (req, res) => {
     await createAuditLog("delete", "user", teacher._id, req.user.id, {}, req);
 
     res.json({ msg: "Teacher deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
+};
+
+// Change password for any user (admin only)
+export const changeUserPassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const userId = req.params.id;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ msg: "Password must be at least 6 characters" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    user.password = newPassword; // Will be hashed by pre-save hook
+    await user.save();
+
+    await createAuditLog("update", "user", userId, req.user.id, { action: "password_change" }, req);
+
+    res.json({ msg: "Password changed successfully" });
   } catch (error) {
     res.status(500).json({ msg: "Server error", error: error.message });
   }

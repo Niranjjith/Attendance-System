@@ -80,8 +80,8 @@ flutter:
 
   # Assets
   assets:
-    - assets/images/
-    - assets/logos/
+    - assets/nilgiri.png
+    - assets/multimedia.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

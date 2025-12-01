@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import '../models/user.dart';
+import '../theme/app_theme.dart';
 import 'login_screen.dart';
 import 'home_screen.dart';
+import 'teacher_home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -23,13 +27,28 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    final user = prefs.getString('user');
+    final userJson = prefs.getString('user');
 
-    if (token != null && user != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+    if (token != null && userJson != null) {
+      try {
+        final user = User.fromJson(jsonDecode(userJson));
+        if (user.role == 'teacher') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const TeacherHomeScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+      } catch (e) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
     } else {
       Navigator.pushReplacement(
         context,
@@ -41,23 +60,33 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundGreen,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo placeholder - replace with actual logo
+            // Logo - try to load from assets, fallback to icon
             Container(
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: AppTheme.primaryGreen,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
-                Icons.school,
-                size: 60,
-                color: Colors.white,
+              child: Image.asset(
+                'assets/nilgiri.png',
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(
+                    'assets/multimedia.png',
+                    errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.school,
+                            size: 60,
+                            color: AppTheme.white,
+                          );
+                    },
+                  );
+                },
               ),
             ),
             const SizedBox(height: 24),
@@ -66,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: AppTheme.primaryGreen,
                 letterSpacing: 1.2,
               ),
             ),
@@ -75,12 +104,12 @@ class _SplashScreenState extends State<SplashScreen> {
               'Attendance Management',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: AppTheme.textLight,
               ),
             ),
             const SizedBox(height: 48),
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen),
             ),
           ],
         ),

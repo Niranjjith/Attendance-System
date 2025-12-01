@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
+import 'teacher_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -39,14 +40,36 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (success && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      final user = authProvider.user;
+      if (user != null) {
+        // Navigate based on user role
+        if (user.role == 'student') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        } else if (user.role == 'teacher') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const TeacherHomeScreen()),
+          );
+        } else if (user.role == 'admin') {
+          // Admin should use web panel, but show message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Admin login should be done through web panel.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Login failed. Please check your credentials.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.errorRed,
         ),
       );
     }
@@ -55,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundGreen,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -66,18 +89,28 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 60),
-                // Logo
+                // Logo - try to load from assets, fallback to icon
                 Container(
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: AppTheme.primaryGreen,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Icon(
-                    Icons.school,
-                    size: 50,
-                    color: Colors.white,
+                  child: Image.asset(
+                    'assets/nilgiri.png',
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/multimedia.png',
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.school,
+                            size: 50,
+                            color: AppTheme.white,
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -86,17 +119,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: AppTheme.primaryGreen,
                     letterSpacing: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Student Login',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -105,12 +129,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _userIdController,
                   decoration: const InputDecoration(
                     labelText: 'Email / User ID',
-                    hintText: 'admin@gmail.com',
-                    prefixIcon: Icon(Icons.person, color: Colors.black),
+                    hintText: 'Enter your email or user ID',
+                    prefixIcon: Icon(Icons.person, color: AppTheme.primaryGreen),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your User ID';
+                      return 'Please enter your User ID or Email';
                     }
                     return null;
                   },
@@ -121,11 +145,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock, color: Colors.black),
+                    prefixIcon: const Icon(Icons.lock, color: AppTheme.primaryGreen),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                        color: Colors.grey,
+                        color: AppTheme.textLight,
                       ),
                       onPressed: () {
                         setState(() {
@@ -147,8 +171,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: AppTheme.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

@@ -56,7 +56,7 @@ export const getSubjectStudents = async (req, res) => {
 // Mark attendance
 export const markAttendance = async (req, res) => {
   try {
-    const { subjectId, date, attendance } = req.body; // attendance: [{studentId, status}]
+    const { subjectId, date, hour, attendance } = req.body; // attendance: [{studentId, status}]
 
     if (!subjectId || !date || !attendance || !Array.isArray(attendance)) {
       return res.status(400).json({ msg: "Invalid request data" });
@@ -106,6 +106,8 @@ export const markAttendance = async (req, res) => {
               date: dateObj,
               status,
               markedBy: req.user.id,
+              hour: hour || null,
+              markedAt: new Date(),
               isLocked: false
             },
             $push: {

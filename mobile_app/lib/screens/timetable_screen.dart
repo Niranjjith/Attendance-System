@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class TimetableScreen extends StatefulWidget {
   const TimetableScreen({Key? key}) : super(key: key);
@@ -58,6 +59,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundGreen,
       appBar: AppBar(
         title: const Text('Timetable'),
       ),
@@ -66,7 +68,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
           children: [
             // Time slots header
             Container(
-              color: Colors.black,
+              color: AppTheme.primaryGreen,
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Row(
                 children: [
@@ -74,12 +76,12 @@ class _TimetableScreenState extends State<TimetableScreen> {
                   ...timeSlots.map((time) => Expanded(
                         child: Text(
                           time,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppTheme.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                         ),
                       )),
                 ],
@@ -103,7 +105,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
             width: 80,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppTheme.primaryGreen,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8),
                 bottomLeft: Radius.circular(8),
@@ -113,7 +115,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
               day,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppTheme.white,
                 fontWeight: FontWeight.bold,
               ),
             ),

@@ -13,6 +13,15 @@ const subjectSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  department: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Department"
+  },
+  semester: {
+    type: Number,
+    min: 1,
+    max: 6
+  },
   description: {
     type: String,
     trim: true

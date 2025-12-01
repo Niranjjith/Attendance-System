@@ -27,6 +27,14 @@ const attendanceSchema = new mongoose.Schema({
     ref: "User",
     required: true
   },
+  hour: {
+    type: String,
+    trim: true
+  },
+  markedAt: {
+    type: Date,
+    default: Date.now
+  },
   isLocked: {
     type: Boolean,
     default: false

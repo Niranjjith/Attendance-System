@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../api/api_service.dart';
+import '../theme/app_theme.dart';
 
 class NoticeBoardScreen extends StatefulWidget {
   const NoticeBoardScreen({Key? key}) : super(key: key);
@@ -47,6 +48,7 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundGreen,
       appBar: AppBar(
         title: const Text('Notice Board'),
       ),
