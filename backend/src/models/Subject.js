@@ -48,9 +48,8 @@ const subjectSchema = new mongoose.Schema({
   }
 });
 
-subjectSchema.pre("save", function (next) {
+subjectSchema.pre("save", function () {
   this.updatedAt = Date.now();
-  next();
 });
 
 export default mongoose.model("Subject", subjectSchema);

@@ -20,9 +20,13 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _showImagePicker(BuildContext context, user) async {
     if (!mounted) return;
-    
+
+    // Capture the parent (profile screen) context so we don't use the
+    // bottom sheet context for ScaffoldMessenger, which can be deactivated.
+    final rootContext = context;
+
     showModalBottomSheet(
-      context: context,
+      context: rootContext,
       builder: (BuildContext context) {
         return SafeArea(
           child: Wrap(
@@ -32,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title: const Text('Choose from Gallery'),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickImage(context, user, ImageSource.gallery);
+                  _pickImage(rootContext, user, ImageSource.gallery);
                 },
               ),
               ListTile(
@@ -40,7 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title: const Text('Take Photo'),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickImage(context, user, ImageSource.camera);
+                  _pickImage(rootContext, user, ImageSource.camera);
                 },
               ),
             ],
@@ -61,9 +65,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
       if (image != null && mounted) {
-        // Show loading indicator
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+        // Show loading indicator using a safe ScaffoldMessenger lookup
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        if (mounted && messenger != null) {
+          messenger.showSnackBar(
             const SnackBar(
               content: Text('Uploading profile photo...'),
               backgroundColor: AppTheme.primaryGreen,
@@ -77,12 +82,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error picking image: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        if (messenger != null) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('Error picking image: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -113,12 +121,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(data['msg'] ?? 'Profile photo updated successfully'),
-              backgroundColor: AppTheme.primaryGreen,
-            ),
-          );
+          final messenger = ScaffoldMessenger.maybeOf(context);
+          if (messenger != null) {
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(data['msg'] ?? 'Profile photo updated successfully'),
+                backgroundColor: AppTheme.primaryGreen,
+              ),
+            );
+          }
           // Refresh user data - use post frame callback to avoid setState during build
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             if (mounted) {
@@ -129,22 +140,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } else {
         final errorData = json.decode(response.body);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorData['msg'] ?? 'Failed to upload profile photo'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          final messenger = ScaffoldMessenger.maybeOf(context);
+          if (messenger != null) {
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(errorData['msg'] ?? 'Failed to upload profile photo'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error uploading photo: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        if (messenger != null) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('Error uploading photo: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

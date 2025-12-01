@@ -4,6 +4,13 @@ import Attendance from "../models/Attendance.js";
 import AuditLog from "../models/AuditLog.js";
 import crypto from "crypto";
 
+// Normalize optional form fields that may arrive as empty strings
+const normalizeField = (value) => {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === "string" && value.trim() === "") return undefined;
+  return value;
+};
+
 // Create audit log helper
 const createAuditLog = async (action, entity, entityId, performedBy, changes = {}, req = null) => {
   try {
@@ -44,6 +51,7 @@ export const getStudents = async (req, res) => {
 
     const students = await User.find(query)
       .populate("subjects", "code name")
+      .populate("department", "name code")
       .select("-password -activeToken")
       .sort({ createdAt: -1 });
 
@@ -393,19 +401,23 @@ export const createSubject = async (req, res) => {
   try {
     const { code, name, description, teacher, students, department, semester } = req.body;
 
-    const existing = await Subject.findOne({ code });
+    if (!code || !name) {
+      return res.status(400).json({ msg: "Subject code and name are required" });
+    }
+
+    const existing = await Subject.findOne({ code: code.toUpperCase() });
     if (existing) {
       return res.status(400).json({ msg: "Subject code already exists" });
     }
 
     const subject = await Subject.create({
       code: code.toUpperCase(),
-      name,
-      description,
-      teacher,
-      students,
-      department,
-      semester
+      name: name.trim(),
+      description: normalizeField(description),
+      teacher: normalizeField(teacher),
+      students: Array.isArray(students) ? students.filter(Boolean) : undefined,
+      department: normalizeField(department),
+      semester: normalizeField(semester) ? Number(semester) : undefined
     });
 
     await createAuditLog("create", "subject", subject._id, req.user.id, {}, req);
@@ -426,12 +438,12 @@ export const updateSubject = async (req, res) => {
       return res.status(404).json({ msg: "Subject not found" });
     }
 
-    if (name) subject.name = name;
-    if (description !== undefined) subject.description = description;
-    if (teacher) subject.teacher = teacher;
-    if (students) subject.students = students;
-    if (department !== undefined) subject.department = department;
-    if (semester !== undefined) subject.semester = semester;
+    if (name) subject.name = name.trim();
+    if (description !== undefined) subject.description = normalizeField(description);
+    subject.teacher = normalizeField(teacher) || undefined;
+    if (Array.isArray(students)) subject.students = students.filter(Boolean);
+    if (department !== undefined) subject.department = normalizeField(department);
+    if (semester !== undefined) subject.semester = normalizeField(semester) ? Number(semester) : undefined;
 
     await subject.save();
 

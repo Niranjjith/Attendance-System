@@ -74,9 +74,8 @@ attendanceSchema.index({ date: 1 });
 attendanceSchema.index({ subjectId: 1 });
 attendanceSchema.index({ studentId: 1 });
 
-attendanceSchema.pre("save", function (next) {
+attendanceSchema.pre("save", function () {
   this.updatedAt = Date.now();
-  next();
 });
 
 export default mongoose.model("Attendance", attendanceSchema);
