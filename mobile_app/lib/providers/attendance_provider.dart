@@ -30,6 +30,8 @@ class AttendanceProvider with ChangeNotifier {
           .toList();
     } catch (e) {
       print('Error loading attendance: $e');
+      // Return empty list on error instead of keeping old data
+      _attendance = [];
     } finally {
       _isLoading = false;
       notifyListeners();

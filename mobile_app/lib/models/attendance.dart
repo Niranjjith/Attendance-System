@@ -1,3 +1,5 @@
+import 'user.dart';
+
 class Attendance {
   final String id;
   final String studentId;

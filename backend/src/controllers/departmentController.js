@@ -60,24 +60,40 @@ export const createDepartment = async (req, res) => {
       return res.status(400).json({ msg: "Name and code are required" });
     }
 
-    // Check if department exists
+    // Check if department exists (including inactive ones)
     const existing = await Department.findOne({
       $or: [{ name }, { code: code.toUpperCase() }]
     });
     if (existing) {
-      return res.status(400).json({ msg: "Department name or code already exists" });
+      if (existing.isActive) {
+        return res.status(400).json({ msg: "Department name or code already exists" });
+      } else {
+        // Reactivate and update
+        existing.isActive = true;
+        existing.name = name;
+        existing.code = code.toUpperCase();
+        if (description !== undefined) existing.description = description;
+        await existing.save();
+        await createAuditLog("create", "department", existing._id, req.user.id, { action: "reactivated" }, req);
+        return res.status(201).json({ msg: "Department created successfully", department: existing });
+      }
     }
 
     const department = await Department.create({
       name,
       code: code.toUpperCase(),
-      description
+      description: description || ""
     });
 
     await createAuditLog("create", "department", department._id, req.user.id, {}, req);
 
     res.status(201).json({ msg: "Department created successfully", department });
   } catch (error) {
+    console.error("Create department error:", error);
+    if (error.code === 11000) {
+      // Duplicate key error
+      return res.status(400).json({ msg: "Department name or code already exists" });
+    }
     res.status(500).json({ msg: "Server error", error: error.message });
   }
 };

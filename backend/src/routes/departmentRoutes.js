@@ -10,10 +10,7 @@ import {
 
 const router = express.Router();
 
-// Public route to get departments (for student/teacher use)
-router.get("/departments", getDepartments);
-
-// All other routes require authentication and admin role
+// All routes require authentication and admin role
 router.use(authMiddleware);
 router.use(async (req, res, next) => {
   const User = (await import("../models/User.js")).default;
@@ -24,6 +21,8 @@ router.use(async (req, res, next) => {
   next();
 });
 
+// Admin routes for department management
+router.get("/departments", getDepartments);
 router.get("/departments/:id", getDepartment);
 router.post("/departments", createDepartment);
 router.put("/departments/:id", updateDepartment);

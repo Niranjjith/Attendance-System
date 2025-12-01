@@ -1,14 +1,20 @@
 import express from "express";
-import { DEPARTMENTS, SEMESTERS } from "../utils/departments.js";
+import { SEMESTERS } from "../utils/departments.js";
+import Department from "../models/Department.js";
 
 const router = express.Router();
 
-// Get departments list
-router.get("/departments", (req, res) => {
-  res.json({ departments: DEPARTMENTS });
+// Get departments list (from database)
+router.get("/departments", async (req, res) => {
+  try {
+    const departments = await Department.find({ isActive: true }).sort({ name: 1 });
+    res.json({ departments: departments.map(d => d.name) });
+  } catch (error) {
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
 });
 
-// Get semesters list
+// Get semesters list (default 6 semesters)
 router.get("/semesters", (req, res) => {
   res.json({ semesters: SEMESTERS });
 });

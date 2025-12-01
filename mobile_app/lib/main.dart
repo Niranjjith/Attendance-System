@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/attendance_provider.dart';
+import 'theme/app_theme.dart';
+import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -20,31 +22,11 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
       ],
       child: MaterialApp(
-        title: 'Attendance System',
-        theme: ThemeData(
-          primarySwatch: Colors.purple,
-          useMaterial3: true,
-        ),
-        home: const AuthWrapper(),
+        title: 'MultiHub',
+        theme: AppTheme.lightTheme,
+        home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),
-    );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        if (authProvider.isAuthenticated) {
-          return const HomeScreen();
-        } else {
-          return const LoginScreen();
-        }
-      },
     );
   }
 }

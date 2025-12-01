@@ -9,6 +9,7 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import excelRoutes from "./routes/excelRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import departmentsRoutes from "./routes/departmentsRoutes.js";
+import departmentRoutes from "./routes/departmentRoutes.js";
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/excel", excelRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api", departmentsRoutes);
+app.use("/api/admin", departmentRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
