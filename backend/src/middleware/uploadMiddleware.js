@@ -27,16 +27,18 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter - only images
+// File filter - only images (supports modern formats like HEIC)
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedExtensions = /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i;
+  const allowedMime = /^image\/(jpeg|png|gif|webp|heic|heif|bmp)$/i;
+
+  const extname = allowedExtensions.test(path.extname(file.originalname));
+  const mimetype = allowedMime.test(file.mimetype);
 
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new Error("Only image files are allowed (jpeg, jpg, png, gif, webp)"));
+    cb(new Error("Only image files are allowed (jpeg, jpg, png, gif, webp, heic, bmp)"));
   }
 };
 
@@ -44,10 +46,24 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB max file size
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
   },
   fileFilter: fileFilter,
 });
+
+export const handleProfilePhotoUpload = (req, res, next) => {
+  upload.single("photo")(req, res, (err) => {
+    if (!err) return next();
+
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({ msg: "Image is too large. Maximum size is 10 MB." });
+    }
+
+    return res.status(400).json({
+      msg: err.message || "Failed to upload profile photo. Please try again."
+    });
+  });
+};
 
 export default upload;
 

@@ -9,6 +9,7 @@ import 'profile_screen.dart';
 import 'notice_board_screen.dart';
 import 'timetable_screen.dart';
 import 'login_screen.dart';
+import 'resources_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -31,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundGreen,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
         title: const Text('MultiHub'),
         actions: [
@@ -86,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(color: AppTheme.primaryGreen),
+            decoration: const BoxDecoration(color: AppTheme.white),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -96,7 +97,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 60,
                   decoration: BoxDecoration(
                     color: AppTheme.white,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.border, width: 2),
                   ),
                   child: Image.asset(
                     'assets/nilgiri.png',
@@ -114,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Text(
                   'MultiHub',
                   style: TextStyle(
-                    color: AppTheme.white,
+                    color: AppTheme.textDark,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -123,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.dashboard, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.dashboard, color: AppTheme.primaryBlue),
             title: const Text('Dashboard'),
             onTap: () {
               Navigator.pop(context);
@@ -131,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.calendar_today, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.calendar_today, color: AppTheme.primaryBlue),
             title: const Text('Timetable'),
             onTap: () {
               Navigator.pop(context);
@@ -142,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.notifications, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.notifications, color: AppTheme.primaryBlue),
             title: const Text('Notice Board'),
             onTap: () {
               Navigator.pop(context);
@@ -153,13 +155,24 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.person, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.person, color: AppTheme.primaryBlue),
             title: const Text('Profile'),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.apps, color: AppTheme.primaryBlue),
+            title: const Text('Resources'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ResourcesScreen()),
               );
             },
           ),
@@ -223,12 +236,11 @@ class _HomeScreenState extends State<HomeScreen> {
         return Card(
           child: Container(
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppTheme.primaryGreen, AppTheme.lightGreen],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: AppTheme.surface,
               borderRadius: BorderRadius.circular(16),
+              border: const Border.fromBorderSide(
+                BorderSide(color: AppTheme.border, width: 1),
+              ),
             ),
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -239,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.white,
+                    color: AppTheme.textDark,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -247,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   user?.name ?? 'Student',
                   style: const TextStyle(
                     fontSize: 20,
-                    color: AppTheme.white,
+                    color: AppTheme.textLight,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

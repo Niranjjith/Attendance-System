@@ -52,7 +52,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundGreen,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
         title: const Text('MultiHub - Teacher'),
         actions: [
@@ -109,11 +109,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         children: [
           DrawerHeader(
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppTheme.primaryGreen, AppTheme.lightGreen],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: AppTheme.white,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +120,8 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                   height: 60,
                   decoration: BoxDecoration(
                     color: AppTheme.white,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.border, width: 2),
                   ),
                   child: Image.asset(
                     'assets/nilgiri.png',
@@ -142,7 +139,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                 const Text(
                   'MultiHub',
                   style: TextStyle(
-                    color: AppTheme.white,
+                    color: AppTheme.textDark,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -151,7 +148,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.dashboard, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.dashboard, color: AppTheme.primaryBlue),
             title: const Text('Dashboard'),
             onTap: () {
               Navigator.pop(context);
@@ -159,7 +156,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.subject, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.subject, color: AppTheme.primaryBlue),
             title: const Text('My Subjects'),
             onTap: () {
               Navigator.pop(context);
@@ -167,7 +164,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.check_circle, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.check_circle, color: AppTheme.primaryBlue),
             title: const Text('Mark Attendance'),
             onTap: () {
               Navigator.pop(context);
@@ -178,7 +175,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.grade, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.grade, color: AppTheme.primaryBlue),
             title: const Text('Manage Marks'),
             onTap: () {
               Navigator.pop(context);
@@ -190,7 +187,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.lock, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.lock, color: AppTheme.primaryBlue),
             title: const Text('Change Password'),
             onTap: () {
               Navigator.pop(context);
@@ -201,7 +198,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.person, color: AppTheme.primaryGreen),
+            leading: const Icon(Icons.person, color: AppTheme.primaryBlue),
             title: const Text('Profile'),
             onTap: () {
               Navigator.pop(context);
@@ -257,12 +254,11 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         return Card(
           child: Container(
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppTheme.primaryGreen, AppTheme.lightGreen],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: AppTheme.surface,
               borderRadius: BorderRadius.circular(16),
+              border: const Border.fromBorderSide(
+                BorderSide(color: AppTheme.border, width: 1),
+              ),
             ),
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -271,26 +267,26 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                 const Text(
                   'Welcome, Teacher!',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.white,
+                    color: AppTheme.textDark,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   user?.name ?? 'Teacher',
                   style: const TextStyle(
-                    fontSize: 20,
-                    color: AppTheme.white,
+                    fontSize: 18,
+                    color: AppTheme.textLight,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Manage attendance, marks, and more',
+                  'Manage attendance, marks, notices and more.',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppTheme.white,
+                    color: AppTheme.textLight,
                   ),
                 ),
               ],
@@ -350,11 +346,10 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          border: const Border.fromBorderSide(
+            BorderSide(color: AppTheme.border, width: 1),
           ),
+          color: AppTheme.surface,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
