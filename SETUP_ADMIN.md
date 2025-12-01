@@ -37,3 +37,4 @@ Once logged in, you can change your email/username and password from the **Setti
 ✅ Settings page to change password
 ✅ Improved UI with better styling and gradients
 
+

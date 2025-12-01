@@ -38,3 +38,4 @@ departmentSchema.pre("save", function () {
 
 export default mongoose.model("Department", departmentSchema);
 
+

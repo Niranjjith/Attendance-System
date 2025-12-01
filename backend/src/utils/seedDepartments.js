@@ -52,3 +52,4 @@ const seedDepartments = async () => {
 
 seedDepartments();
 
+

@@ -16,3 +16,4 @@ export const DEPARTMENTS = [
 // Semesters (1-6)
 export const SEMESTERS = [1, 2, 3, 4, 5, 6];
 
+

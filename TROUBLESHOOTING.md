@@ -90,3 +90,4 @@ taskkill /PID <PID> /F
 3. Verify all dependencies are installed: `npm install` in both backend and admin-panel
 4. Make sure you're using the correct credentials
 
+

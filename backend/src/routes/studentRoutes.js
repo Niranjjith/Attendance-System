@@ -25,3 +25,4 @@ router.get("/attendance/daily", getDailyRecord);
 
 export default router;
 
+
