@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 
-const subjectSchema = new mongoose.Schema({
+const departmentSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
   code: {
     type: String,
     required: true,
@@ -8,23 +14,10 @@ const subjectSchema = new mongoose.Schema({
     trim: true,
     uppercase: true
   },
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
   description: {
     type: String,
     trim: true
   },
-  teacher: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  },
-  students: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  }],
   isActive: {
     type: Boolean,
     default: true
@@ -39,10 +32,9 @@ const subjectSchema = new mongoose.Schema({
   }
 });
 
-subjectSchema.pre("save", function (next) {
+departmentSchema.pre("save", function () {
   this.updatedAt = Date.now();
-  next();
 });
 
-export default mongoose.model("Subject", subjectSchema);
+export default mongoose.model("Department", departmentSchema);
 
