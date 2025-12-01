@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import '../providers/attendance_provider.dart';
+import '../models/attendance.dart';
 import '../theme/app_theme.dart';
 import 'profile_screen.dart';
 import 'notice_board_screen.dart';
@@ -207,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildOverallStats(stats),
               const SizedBox(height: 24),
               // Quick Actions
-              _buildQuickActions(),
+              _buildQuickActions(context),
             ],
           ),
         );
@@ -267,6 +268,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildTodaysAttendanceByHour(AttendanceProvider provider, String today) {
+    // Get today's attendance from provider
+    final todayAttendance = provider.attendance.where((record) {
+      final recordDate = DateFormat('yyyy-MM-dd').format(record.date);
+      return recordDate == today;
+    }).toList();
+    
+    // Create a map of hour -> attendance record
+    final Map<int, Attendance> attendanceByHour = {};
+    for (var record in todayAttendance) {
+      final hour = record.hour;
+      if (hour != null) {
+        attendanceByHour[hour] = record;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -279,21 +295,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        FutureBuilder(
-          future: provider.loadAttendance(startDate: today, endDate: today),
-          builder: (context, snapshot) {
-            // Hours 1-5 for today
-            final hours = [1, 2, 3, 4, 5];
-            
-            return SizedBox(
-              height: 120,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: hours.length,
-                itemBuilder: (context, index) {
-                  final hour = hours[index];
-                  // Mock data - replace with actual API call
-                  final status = _getHourStatus(hour); // 'present', 'absent', 'late', or null
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: 5, // 5 hours
+            itemBuilder: (context, index) {
+              final hour = index + 1;
+              final record = attendanceByHour[hour];
+              final status = record?.status;
                   
                   Color statusColor = Colors.grey.shade300;
                   IconData statusIcon = Icons.help_outline;
@@ -360,27 +370,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   );
-                },
-              ),
-            );
-          },
+            },
+          ),
         ),
       ],
     );
   }
 
-  String? _getHourStatus(int hour) {
-    // Mock function - replace with actual API call
-    // This should check attendance for the current hour
-    final now = DateTime.now();
-    final currentHour = now.hour;
-    
-    // Mock logic - in real app, fetch from API
-    if (hour == 1) return 'present';
-    if (hour == 2) return 'late';
-    if (hour == 3) return 'absent';
-    return null; // Not marked yet
-  }
 
   Widget _buildOverallStats(Map<String, dynamic>? stats) {
     if (stats == null) {
@@ -475,7 +471,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

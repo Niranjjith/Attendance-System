@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -10,6 +12,9 @@ import excelRoutes from "./routes/excelRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import departmentsRoutes from "./routes/departmentsRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -25,6 +30,9 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from uploads directory
+app.use("/uploads", express.static(join(__dirname, "../uploads")));
 
 // Input sanitization middleware (basic)
 app.use((req, res, next) => {

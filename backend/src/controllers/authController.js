@@ -139,7 +139,8 @@ export const getMe = async (req, res) => {
     const user = await User.findById(req.user.id)
       .populate("subjects", "code name")
       .populate("assignedSubjects", "code name")
-      .select("-password -activeToken");
+      .populate("department", "name code")
+      .select("-password -activeToken -resetPasswordToken -resetPasswordExpires");
 
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
@@ -147,6 +148,41 @@ export const getMe = async (req, res) => {
 
     res.json({ user });
   } catch (error) {
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
+};
+
+// Upload profile photo
+export const uploadProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: "No file uploaded" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Construct the file URL
+    const fileUrl = `/uploads/profile-photos/${req.file.filename}`;
+    
+    // Update user's profile photo
+    user.profilePhoto = fileUrl;
+    await user.save();
+
+    // Create audit log
+    await createAuditLog("update", "user", user._id, req.user.id, { 
+      action: "profile_photo_upload",
+      photoUrl: fileUrl 
+    }, req);
+
+    res.json({ 
+      msg: "Profile photo uploaded successfully",
+      profilePhoto: fileUrl 
+    });
+  } catch (error) {
+    console.error("Profile photo upload error:", error);
     res.status(500).json({ msg: "Server error", error: error.message });
   }
 };

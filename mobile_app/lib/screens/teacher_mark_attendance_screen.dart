@@ -13,41 +13,56 @@ class TeacherMarkAttendanceScreen extends StatefulWidget {
 class _TeacherMarkAttendanceScreenState extends State<TeacherMarkAttendanceScreen> {
   String? _selectedSubject;
   String? _selectedHour;
+  String? _selectedDepartment;
+  String? _selectedSemester;
   DateTime _selectedDate = DateTime.now();
   List<Map<String, dynamic>> _subjects = [];
+  List<Map<String, dynamic>> _departments = [];
   List<Map<String, dynamic>> _students = [];
   Map<String, String> _attendanceStatus = {}; // studentId -> status
   bool _isLoading = false;
   bool _isSubmitting = false;
 
   final List<String> _hours = ['1', '2', '3', '4', '5', '6', '7', '8'];
+  final List<int> _semesters = [1, 2, 3, 4, 5, 6];
 
   @override
   void initState() {
     super.initState();
     _loadSubjects();
+    _loadDepartments();
+  }
+
+  Future<void> _loadDepartments() async {
+    try {
+      final response = await ApiService.get('/departments');
+      setState(() {
+        _departments = List<Map<String, dynamic>>.from(response['departments'] ?? []);
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading departments: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _loadSubjects() async {
     setState(() => _isLoading = true);
     try {
-      // TODO: Replace with actual API call
-      // final response = await ApiService.get('/teacher/subjects');
-      // setState(() {
-      //   _subjects = List<Map<String, dynamic>>.from(response['subjects'] ?? []);
-      // });
-
-      // Mock data
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await ApiService.get('/teacher/subjects');
       setState(() {
-        _subjects = [
-          {'id': '1', 'code': 'MATH101', 'name': 'Mathematics'},
-          {'id': '2', 'code': 'SCI101', 'name': 'Science'},
-        ];
+        _subjects = List<Map<String, dynamic>>.from(response['subjects'] ?? []);
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading subjects: $e')),
+        );
+      }
     }
   }
 
@@ -56,26 +71,46 @@ class _TeacherMarkAttendanceScreenState extends State<TeacherMarkAttendanceScree
 
     setState(() => _isLoading = true);
     try {
-      // TODO: Replace with actual API call
-      // final response = await ApiService.get('/teacher/students', {
-      //   'subjectId': _selectedSubject,
-      //   'date': DateFormat('yyyy-MM-dd').format(_selectedDate),
-      //   'hour': _selectedHour,
-      // });
+      final queryParams = <String, String>{
+        'date': DateFormat('yyyy-MM-dd').format(_selectedDate),
+        'hour': _selectedHour!,
+      };
+      
+      if (_selectedDepartment != null) {
+        queryParams['department'] = _selectedDepartment!;
+      }
+      
+      if (_selectedSemester != null) {
+        queryParams['semester'] = _selectedSemester!;
+      }
 
-      // Mock data
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await ApiService.get(
+        '/teacher/subjects/$_selectedSubject/students',
+        queryParams: queryParams,
+      );
+      
       setState(() {
-        _students = [
-          {'id': '1', 'name': 'John Doe', 'userId': 'STU001'},
-          {'id': '2', 'name': 'Jane Smith', 'userId': 'STU002'},
-          {'id': '3', 'name': 'Bob Johnson', 'userId': 'STU003'},
-        ];
+        _students = List<Map<String, dynamic>>.from(response['students'] ?? []);
+        // Initialize attendance status - check if already marked
         _attendanceStatus = {};
+        for (var student in _students) {
+          final studentId = student['_id'] ?? student['id'];
+          // Check if student has attendance marked for this date/hour
+          if (student['attendanceStatus'] != null) {
+            _attendanceStatus[studentId] = student['attendanceStatus'];
+          } else {
+            _attendanceStatus[studentId] = 'present'; // Default to present
+          }
+        }
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading students: $e')),
+        );
+      }
     }
   }
 
@@ -94,15 +129,12 @@ class _TeacherMarkAttendanceScreenState extends State<TeacherMarkAttendanceScree
         'status': e.value,
       }).toList();
 
-      // TODO: Replace with actual API call
-      // await ApiService.post('/teacher/attendance', {
-      //   'subjectId': _selectedSubject,
-      //   'date': DateFormat('yyyy-MM-dd').format(_selectedDate),
-      //   'hour': _selectedHour,
-      //   'attendance': attendanceData,
-      // });
-
-      await Future.delayed(const Duration(seconds: 1));
+      await ApiService.post('/teacher/attendance/mark', {
+        'subjectId': _selectedSubject,
+        'date': DateFormat('yyyy-MM-dd').format(_selectedDate),
+        'hour': int.parse(_selectedHour!),
+        'attendance': attendanceData,
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -153,7 +185,7 @@ class _TeacherMarkAttendanceScreenState extends State<TeacherMarkAttendanceScree
               ),
               items: _subjects.map<DropdownMenuItem<String>>((subject) {
                 return DropdownMenuItem<String>(
-                  value: subject['id'] as String,
+                  value: subject['_id'] ?? subject['id'] ?? '',
                   child: Text('${subject['code']} - ${subject['name']}'),
                 );
               }).toList(),
@@ -235,6 +267,82 @@ class _TeacherMarkAttendanceScreenState extends State<TeacherMarkAttendanceScree
               ),
             ),
             const SizedBox(height: 24),
+            // Department Filter
+            const Text(
+              'Filter by Department (Optional)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _selectedDepartment,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: AppTheme.white,
+                hintText: 'All Departments',
+              ),
+              items: [
+                const DropdownMenuItem<String>(
+                  value: null,
+                  child: Text('All Departments'),
+                ),
+                ..._departments.map<DropdownMenuItem<String>>((dept) {
+                  return DropdownMenuItem<String>(
+                    value: dept['_id'] ?? dept['id'] ?? '',
+                    child: Text('${dept['code'] ?? ''} - ${dept['name'] ?? ''}'),
+                  );
+                }).toList(),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedDepartment = value;
+                  _students = [];
+                  _attendanceStatus = {};
+                });
+                if (_selectedSubject != null && _selectedHour != null) {
+                  _loadStudents();
+                }
+              },
+            ),
+            const SizedBox(height: 24),
+            // Semester Filter
+            const Text(
+              'Filter by Semester (Optional)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<int>(
+              value: _selectedSemester != null ? int.tryParse(_selectedSemester!) : null,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: AppTheme.white,
+                hintText: 'All Semesters',
+              ),
+              items: [
+                const DropdownMenuItem<int>(
+                  value: null,
+                  child: Text('All Semesters'),
+                ),
+                ..._semesters.map<DropdownMenuItem<int>>((sem) {
+                  return DropdownMenuItem<int>(
+                    value: sem,
+                    child: Text('Semester $sem'),
+                  );
+                }).toList(),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedSemester = value?.toString();
+                  _students = [];
+                  _attendanceStatus = {};
+                });
+                if (_selectedSubject != null && _selectedHour != null) {
+                  _loadStudents();
+                }
+              },
+            ),
+            const SizedBox(height: 24),
             // Students List
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
@@ -249,7 +357,7 @@ class _TeacherMarkAttendanceScreenState extends State<TeacherMarkAttendanceScree
               ),
               const SizedBox(height: 16),
               ..._students.map((student) {
-                final studentId = student['id'] as String;
+                final studentId = student['_id'] ?? student['id'] ?? '';
                 final currentStatus = _attendanceStatus[studentId] ?? 'present';
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),

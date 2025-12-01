@@ -22,31 +22,9 @@ class _TeacherSubjectsScreenState extends State<TeacherSubjectsScreen> {
   Future<void> _loadSubjects() async {
     setState(() => _isLoading = true);
     try {
-      // TODO: Replace with actual API call
-      // final response = await ApiService.get('/teacher/subjects');
-      // setState(() {
-      //   _subjects = List<Map<String, dynamic>>.from(response['subjects'] ?? []);
-      // });
-
-      // Mock data for now
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await ApiService.get('/teacher/subjects');
       setState(() {
-        _subjects = [
-          {
-            'id': '1',
-            'code': 'MATH101',
-            'name': 'Mathematics',
-            'batch': '2024',
-            'semester': 1,
-          },
-          {
-            'id': '2',
-            'code': 'SCI101',
-            'name': 'Science',
-            'batch': '2024',
-            'semester': 1,
-          },
-        ];
+        _subjects = List<Map<String, dynamic>>.from(response['subjects'] ?? []);
         _isLoading = false;
       });
     } catch (e) {
@@ -116,11 +94,36 @@ class _TeacherSubjectsScreenState extends State<TeacherSubjectsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 4),
-                  Text('Code: ${subject['code'] ?? ''}'),
-                  if (subject['batch'] != null)
+                  Text(
+                    'Code: ${subject['code'] ?? ''}',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  if (subject['department'] != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Department: ${subject['department'] is Map ? subject['department']['name'] ?? '' : subject['department'] ?? ''}',
+                      style: TextStyle(
+                        color: AppTheme.primaryGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                  if (subject['semester'] != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Semester: ${subject['semester']}',
+                      style: TextStyle(
+                        color: AppTheme.accentGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                  if (subject['batch'] != null) ...[
+                    const SizedBox(height: 2),
                     Text('Batch: ${subject['batch']}'),
-                  if (subject['semester'] != null)
-                    Text('Semester: ${subject['semester']}'),
+                  ],
                 ],
               ),
               trailing: const Icon(Icons.chevron_right),

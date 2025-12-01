@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../api/api_service.dart';
 import '../theme/app_theme.dart';
 import 'teacher_subjects_screen.dart';
 import 'teacher_mark_attendance_screen.dart';
@@ -18,6 +19,35 @@ class TeacherHomeScreen extends StatefulWidget {
 
 class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   int _selectedIndex = 0;
+
+  Future<Map<String, dynamic>> _loadTeacherStats() async {
+    try {
+      // Get teacher's subjects
+      final subjectsResponse = await ApiService.get('/teacher/subjects');
+      final subjects = subjectsResponse['subjects'] ?? [];
+      
+      // Calculate total students across all subjects
+      int totalStudents = 0;
+      for (var subject in subjects) {
+        try {
+          final studentsResponse = await ApiService.get('/teacher/subjects/${subject['_id']}/students');
+          totalStudents += ((studentsResponse['students'] ?? []) as List).length;
+        } catch (e) {
+          // Skip if error fetching students for a subject
+        }
+      }
+
+      return {
+        'totalSubjects': subjects.length,
+        'totalStudents': totalStudents,
+      };
+    } catch (e) {
+      return {
+        'totalSubjects': 0,
+        'totalStudents': 0,
+      };
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -272,26 +302,45 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   }
 
   Widget _buildQuickStats() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            'Subjects',
-            '5',
-            Icons.subject,
-            AppTheme.primaryGreen,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            'Students',
-            '120',
-            Icons.people,
-            AppTheme.lightGreen,
-          ),
-        ),
-      ],
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _loadTeacherStats(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Row(
+            children: [
+              Expanded(child: Center(child: CircularProgressIndicator())),
+              SizedBox(width: 12),
+              Expanded(child: Center(child: CircularProgressIndicator())),
+            ],
+          );
+        }
+
+        final stats = snapshot.data ?? {};
+        final totalSubjects = stats['totalSubjects'] ?? 0;
+        final totalStudents = stats['totalStudents'] ?? 0;
+
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                'Subjects',
+                totalSubjects.toString(),
+                Icons.subject,
+                AppTheme.primaryGreen,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                'Students',
+                totalStudents.toString(),
+                Icons.people,
+                AppTheme.lightGreen,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

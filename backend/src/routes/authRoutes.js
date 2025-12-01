@@ -5,9 +5,11 @@ import {
   logout,
   getMe,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  uploadProfilePhoto
 } from "../controllers/authController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
+import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -20,6 +22,7 @@ router.post("/reset-password", resetPassword);
 // Protected routes
 router.get("/me", authMiddleware, getMe);
 router.post("/logout", authMiddleware, logout);
+router.post("/upload-profile-photo", authMiddleware, upload.single("photo"), uploadProfilePhoto);
 
 export default router;
 

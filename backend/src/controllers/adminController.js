@@ -131,7 +131,7 @@ export const createStudent = async (req, res) => {
 // Update student
 export const updateStudent = async (req, res) => {
   try {
-    const { name, email, batch, department, semester, registerNumber, phone, subjects, password } = req.body;
+    const { name, email, batch, department, semester, registerNumber, phone, subjects, password, profilePhoto } = req.body;
     const student = await User.findOne({ _id: req.params.id, role: "student" });
 
     if (!student) {
@@ -295,7 +295,7 @@ export const createTeacher = async (req, res) => {
 // Update teacher
 export const updateTeacher = async (req, res) => {
   try {
-    const { name, email, assignedSubjects, password } = req.body;
+    const { name, email, assignedSubjects, password, profilePhoto } = req.body;
     const teacher = await User.findOne({ _id: req.params.id, role: "teacher" });
 
     if (!teacher) {
@@ -391,7 +391,7 @@ export const getSubjects = async (req, res) => {
 // Create subject
 export const createSubject = async (req, res) => {
   try {
-    const { code, name, description, teacher, students } = req.body;
+    const { code, name, description, teacher, students, department, semester } = req.body;
 
     const existing = await Subject.findOne({ code });
     if (existing) {
@@ -403,7 +403,9 @@ export const createSubject = async (req, res) => {
       name,
       description,
       teacher,
-      students
+      students,
+      department,
+      semester
     });
 
     await createAuditLog("create", "subject", subject._id, req.user.id, {}, req);
@@ -417,7 +419,7 @@ export const createSubject = async (req, res) => {
 // Update subject
 export const updateSubject = async (req, res) => {
   try {
-    const { name, description, teacher, students } = req.body;
+    const { name, description, teacher, students, department, semester } = req.body;
     const subject = await Subject.findById(req.params.id);
 
     if (!subject) {
@@ -428,6 +430,8 @@ export const updateSubject = async (req, res) => {
     if (description !== undefined) subject.description = description;
     if (teacher) subject.teacher = teacher;
     if (students) subject.students = students;
+    if (department !== undefined) subject.department = department;
+    if (semester !== undefined) subject.semester = semester;
 
     await subject.save();
 

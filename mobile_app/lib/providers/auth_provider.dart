@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../api/auth_api.dart';
+import '../api/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -46,6 +47,20 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<void> refreshUser() async {
+    try {
+      final response = await ApiService.get('/auth/me');
+      if (response['user'] != null) {
+        _user = User.fromJson(response['user']);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', jsonEncode(_user!.toJson()));
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error refreshing user: $e');
     }
   }
 

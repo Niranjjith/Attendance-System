@@ -1,12 +1,153 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 import 'change_password_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Future<void> _showImagePicker(BuildContext context, user) async {
+    if (!mounted) return;
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(context, user, ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take Photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(context, user, ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(BuildContext context, user, ImageSource source) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (image != null && mounted) {
+        // Show loading indicator
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Uploading profile photo...'),
+              backgroundColor: AppTheme.primaryGreen,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+
+        // Upload image to server
+        await _uploadProfilePhoto(context, image, user);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _uploadProfilePhoto(BuildContext context, XFile imageFile, user) async {
+    try {
+      const baseUrl = 'http://localhost:5000';
+      final uri = Uri.parse('$baseUrl/api/auth/upload-profile-photo');
+      
+      // Create multipart request
+      final request = http.MultipartRequest('POST', uri);
+      
+      // Add token to headers
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      // Add image file
+      final file = await http.MultipartFile.fromPath('photo', imageFile.path);
+      request.files.add(file);
+      
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['msg'] ?? 'Profile photo updated successfully'),
+              backgroundColor: AppTheme.primaryGreen,
+            ),
+          );
+          // Refresh user data - use post frame callback to avoid setState during build
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (mounted) {
+              await Provider.of<AuthProvider>(context, listen: false).refreshUser();
+            }
+          });
+        }
+      } else {
+        final errorData = json.decode(response.body);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorData['msg'] ?? 'Failed to upload profile photo'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error uploading photo: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,17 +183,40 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 50,
-                          color: AppTheme.primaryGreen,
+                      GestureDetector(
+                        onTap: () {
+                          // TODO: Open image picker to upload profile photo
+                          _showImagePicker(context, user);
+                        },
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.primaryGreen, width: 3),
+                          ),
+                          child: user.profilePhoto != null && user.profilePhoto!.isNotEmpty
+                              ? ClipOval(
+                                  child: Image.network(
+                                    user.profilePhoto!,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: AppTheme.primaryGreen,
+                                      );
+                                    },
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: AppTheme.primaryGreen,
+                                ),
                         ),
                       ),
                       const SizedBox(height: 16),

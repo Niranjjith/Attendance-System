@@ -5,6 +5,7 @@ class User {
   final String? email;
   final String role;
   final String? batch;
+  final String? profilePhoto;
 
   User({
     required this.id,
@@ -13,6 +14,7 @@ class User {
     this.email,
     required this.role,
     this.batch,
+    this.profilePhoto,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class User {
       email: json['email'],
       role: json['role'] ?? '',
       batch: json['batch'],
+      profilePhoto: json['profilePhoto'],
     );
   }
 
@@ -34,6 +37,7 @@ class User {
       'email': email,
       'role': role,
       'batch': batch,
+      'profilePhoto': profilePhoto,
     };
   }
 }

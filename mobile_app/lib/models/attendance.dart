@@ -7,7 +7,7 @@ class Attendance {
   final DateTime date;
   final String status; // present, absent, late
   final String markedBy;
-  final String? hour; // Hour when attendance was marked
+  final int? hour; // Hour when attendance was marked
   final DateTime? markedAt; // Timestamp when attendance was marked
   final Subject? subject;
   final User? markedByUser;
@@ -39,7 +39,13 @@ class Attendance {
       markedBy: json['markedBy'] is String
           ? json['markedBy']
           : json['markedBy']?['_id'] ?? '',
-      hour: json['hour'],
+      hour: json['hour'] != null 
+          ? (json['hour'] is int 
+              ? json['hour'] as int 
+              : (json['hour'] is String 
+                  ? int.tryParse(json['hour'] as String) 
+                  : null))
+          : null,
       markedAt: json['markedAt'] != null ? DateTime.parse(json['markedAt']) : null,
       subject: json['subjectId'] is Map
           ? Subject.fromJson(json['subjectId'])

@@ -30,17 +30,18 @@ class _TeacherMarksScreenState extends State<TeacherMarksScreen> {
   Future<void> _loadSubjects() async {
     setState(() => _isLoading = true);
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await ApiService.get('/teacher/subjects');
       setState(() {
-        _subjects = [
-          {'id': '1', 'code': 'MATH101', 'name': 'Mathematics'},
-          {'id': '2', 'code': 'SCI101', 'name': 'Science'},
-        ];
+        _subjects = List<Map<String, dynamic>>.from(response['subjects'] ?? []);
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading subjects: $e')),
+        );
+      }
     }
   }
 
@@ -49,19 +50,26 @@ class _TeacherMarksScreenState extends State<TeacherMarksScreen> {
 
     setState(() => _isLoading = true);
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await ApiService.get('/teacher/subjects/$_selectedSubject/students');
       setState(() {
-        _students = [
-          {'id': '1', 'name': 'John Doe', 'userId': 'STU001'},
-          {'id': '2', 'name': 'Jane Smith', 'userId': 'STU002'},
-          {'id': '3', 'name': 'Bob Johnson', 'userId': 'STU003'},
-        ];
+        _students = List<Map<String, dynamic>>.from(response['students'] ?? []);
+        // Load existing marks if any
         _marks = {};
+        for (var student in _students) {
+          final studentId = student['_id'] ?? student['id'];
+          if (student['marks'] != null && student['marks'][_selectedExamType] != null) {
+            _marks[studentId] = student['marks'][_selectedExamType].toString();
+          }
+        }
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading students: $e')),
+        );
+      }
     }
   }
 
@@ -75,22 +83,27 @@ class _TeacherMarksScreenState extends State<TeacherMarksScreen> {
 
     setState(() => _isSubmitting = true);
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(seconds: 1));
+      final marksData = _marks.entries.map((e) => {
+        'studentId': e.key,
+        'marks': double.tryParse(e.value) ?? 0.0,
+      }).toList();
+
+      await ApiService.post('/teacher/marks', {
+        'subjectId': _selectedSubject,
+        'examType': _selectedExamType,
+        'marks': marksData,
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Marks saved successfully!'),
-            backgroundColor: AppTheme.successGreen,
-          ),
+          const SnackBar(content: Text('Marks submitted successfully!')),
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Failed to submit marks: $e')),
         );
       }
     } finally {
